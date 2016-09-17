@@ -1,0 +1,45 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Data;
+using System.Data.Sql;
+using System.Data.SqlClient;
+
+namespace ConsoleApplication2
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            //Sample to connect to a data source and iterate through rows, using both the traditional method and LINQ to SQL
+            using (SqlConnection cn = new SqlConnection(@"Data Source = OFFICE\SQLEXPRESS; Initial Catalog = AdventureWorks2014; Integrated Security = True"))
+            {
+                DataSet ds = new DataSet();
+                SqlDataAdapter da = new SqlDataAdapter("SELECT [PersonType], [FirstName], [LastName] FROM [AdventureWorks2014].[Person].[Person]", cn);
+                da.Fill(ds, "Employees");
+                foreach(DataRow dr in ds.Tables["Employees"].Rows)
+                {
+                    Console.WriteLine("Employee Type:{0} Employee First Name:{1} Employee Last Name: {2}", dr["PersonType"], dr["FirstName"], dr["LastName"]);
+                }
+                Console.ReadKey();
+                //Filter using Linq
+                DataTable employees = ds.Tables["Employees"];
+                EnumerableRowCollection<DataRow> empList = from employee in employees.AsEnumerable()
+                                               where employee.Field<string>("PersonType").Equals("EM")
+                                               select employee;
+                empList.ToList<DataRow>();
+                for (int i = 0; i < empList.Count(); i++)
+                {
+                    Console.WriteLine("Employee First Name:{0} Employee Last Name: {1}", empList.ElementAt(i).Field<string>("FirstName"), empList.ElementAt(i).Field<string>("LastName"));
+                }
+                        
+                        
+             }
+
+            Console.ReadKey();
+        }
+
+    }
+}

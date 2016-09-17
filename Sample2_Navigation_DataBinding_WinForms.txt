@@ -1,0 +1,234 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Windows.Forms;
+
+namespace SecurityMonitoringSoftware
+{
+    public partial class MonitoredAccounts : Form
+    {
+        //Total number of records
+        int numRecords;
+        //Markers for beginning and end
+        int firstRecord = 0;
+        int lastRecord = 0;
+        int firstAcctNumber = 0;
+        int lastAcctNumber = 0;
+        int currentAcctNumber = 0;
+        int AbsolutePosition = 0;
+        //Variables for Paging
+        public string recCount = "of {0}";
+        int bindingSourceNextLastPosition = 19;
+        int bindingSourcePrevLastPosition = 0;
+        bool isAdd;
+        
+        
+        public MonitoredAccounts()
+        {
+            InitializeComponent();
+        }
+
+        private void MonitoredAccounts_Load(object sender, EventArgs e)
+        {
+
+            // TODO: This line of code loads data into the 'allAccountsDataSet.AllAccounts' table. You can move, or remove it, as needed.
+            //BindControl();
+
+            //'textBox5.DataBindings.Add("Text", this.allAccountsDataSet.AllAccounts, "AllAccounts.MonitorAmt");
+            
+            this.allAccountsTableAdapter.ClearBeforeFill = true;
+            this.allAccountsTableAdapter.FillFirstPage(this.allAccountsDataSet.AllAccounts);
+            bindingNavigatorCountItem.Text = "of {" + this.allAccountsTableAdapter.GetTotalRecordNum().ToString() + "}";
+            //Get Total Record Count
+            numRecords = (int)this.allAccountsTableAdapter.GetTotalRecordNum();
+            //Get the first and last record ids
+            firstAcctNumber = (int)this.allAccountsTableAdapter.GetFirstAcctNumber();
+            lastAcctNumber = (int)this.allAccountsTableAdapter.GetLastAcctNumber();
+            Binding b = new Binding("Text", this.allAccountsBindingSource, "MonitorAmt");
+            b.Format += new ConvertEventHandler(DecimalToCurrency);
+            this.monitorAmtTextBox.DataBindings.Add(b);
+            
+
+
+        }
+
+        private void allAccountsBindingNavigatorSaveItem_Click(object sender, EventArgs e)
+        {
+            this.Validate();
+            this.allAccountsBindingSource.EndEdit();
+            this.tableAdapterManager.UpdateAll(this.allAccountsDataSet);
+
+        }
+
+        private void bindingNavigatorMovePreviousItem_Click(object sender, EventArgs e)
+        {
+            
+            //If we are not at the first exid and it's not the last position, get the previous 20 records
+            currentAcctNumber = Convert.ToInt32(acctNumberTextBox.Text);
+
+            if ((this.allAccountsBindingSource.Position == 0) && (currentAcctNumber != firstAcctNumber))
+                {
+                    this.allAccountsTableAdapter.FillPreviousPage(this.allAccountsDataSet.AllAccounts, currentAcctNumber);
+                    //Since this query filled in descending order, immediately move to the last record
+                    this.allAccountsBindingSource.MoveLast();
+                    
+                }
+                AbsolutePosition--;
+            
+
+            
+            bindingNavigatorPositionItem.Text = AbsolutePosition.ToString();
+            bindingNavigatorCountItem.Text = "of {" + this.allAccountsTableAdapter.GetTotalRecordNum().ToString() + "}";
+            enableButtons();
+            textBox1.Text = this.allAccountsBindingSource.Position.ToString();
+            textBox3.Text = bindingSourcePrevLastPosition.ToString();
+        }
+
+        private void bindingNavigatorMoveLastItem_Click(object sender, EventArgs e)
+        {
+            this.allAccountsDataSet.Clear();
+            this.allAccountsTableAdapter.FillLastPage(this.allAccountsDataSet.AllAccounts);
+            AbsolutePosition = numRecords;
+            bindingNavigatorPositionItem.Text = AbsolutePosition.ToString();
+            bindingNavigatorCountItem.Text = "of {" + this.allAccountsTableAdapter.GetTotalRecordNum().ToString() + "}";
+            bindingNavigatorMovePreviousItem.Enabled = true;
+            bindingNavigatorMoveNextItem.Enabled = false;
+            disableNextButton();
+            
+            
+        }
+
+        private void bindingNavigatorMoveNextItem_Click(object sender, EventArgs e)
+        {
+            //MessageBox.Show("N");
+            //If we are not at the first exid and it's not the last position, get the previous 20 records
+            
+                currentAcctNumber = Convert.ToInt32(acctNumberTextBox.Text);
+
+            
+            if ((this.allAccountsBindingSource.Position == 19) && (currentAcctNumber != lastAcctNumber))
+            {
+                this.allAccountsTableAdapter.FillNextPage(this.allAccountsDataSet.AllAccounts, currentAcctNumber);
+            }
+            AbsolutePosition++;
+
+            this.allAccountsBindingSource.Position++;
+            bindingNavigatorPositionItem.Text = AbsolutePosition.ToString();
+            bindingNavigatorCountItem.Text = "of {" + this.allAccountsTableAdapter.GetTotalRecordNum().ToString() + "}";
+            enableButtons();
+            textBox1.Text = this.allAccountsBindingSource.Position.ToString();
+            textBox3.Text = bindingSourcePrevLastPosition.ToString();
+        }
+
+        private void enableButtons()
+        {
+            this.bindingNavigatorMoveFirstItem.Enabled=true;
+            this.bindingNavigatorMoveLastItem.Enabled=true;
+            this.bindingNavigatorMoveNextItem.Enabled=true;
+            this.bindingNavigatorMovePreviousItem.Enabled=true;
+        }
+
+        private void disableNextButton()
+        {
+            this.bindingNavigatorMoveFirstItem.Enabled = true;
+            this.bindingNavigatorMoveLastItem.Enabled = true;
+            this.bindingNavigatorMoveNextItem.Enabled = false;
+            this.bindingNavigatorMovePreviousItem.Enabled = true;
+        }
+
+
+        private void bindingNavigatorMoveFirstItem_Click(object sender, EventArgs e)
+        {
+            this.allAccountsTableAdapter.FillFirstPage(this.allAccountsDataSet.AllAccounts);
+            AbsolutePosition = 1;
+            bindingNavigatorPositionItem.Text = AbsolutePosition.ToString();
+            bindingNavigatorCountItem.Text = "of {" + this.allAccountsTableAdapter.GetTotalRecordNum().ToString() + "}";
+            enableButtons();
+        
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            this.allAccountsBindingSource.MoveNext();
+        }
+
+        private void toolStripButton1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void panel1_Paint(object sender, PaintEventArgs e)
+        {
+
+        }
+
+        private void bindingNavigatorMoveNextItem_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void billingZipTextBox_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+        private void BindControl()
+        {
+            Binding B = new Binding("Text", this.allAccountsDataSet.AllAccounts, "AllAccounts.MonitorAmt");
+            B.Format += new ConvertEventHandler(DecimalToCurrency);
+            //b.Parse += new ConvertEventHandler(CurrencyToDecimal);
+            monitorAmtTextBox.DataBindings.Add(B);
+        }
+
+
+
+        private void DecimalToCurrency(object sender, ConvertEventArgs cevent)
+            {
+
+                if (isAdd == true)
+                    return;
+                
+                if (cevent.Value.Equals(Convert.DBNull))
+                {
+                    return;
+                }
+
+    
+            
+            if (cevent == null)
+                {
+                    return;
+                }
+
+                if (cevent.ToString() == "")
+                    return;
+
+            // The method converts only to string type. Test this using the DesiredType.
+            if (cevent.DesiredType != typeof(string)) return;
+                    
+            
+            // Use the ToString method to format the value as currency ("c").
+                cevent.Value = ((decimal) cevent.Value).ToString("c");
+            }
+
+        private void monitorAmtTextBox_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void allAccountsBindingSource_CurrentChanged(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void bindingNavigatorAddNewItem_Click(object sender, EventArgs e)
+        {
+            isAdd = true;
+        }
+
+
+    }
+}
