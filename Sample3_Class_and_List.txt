@@ -1,0 +1,55 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Test
+{
+    public class Employee
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public DateTime HireDate { get; set; }
+
+        public Employee(string firstName, string lastName)
+        {
+            FirstName = firstName;
+            LastName = lastName;
+        }
+
+        public Employee() { }
+        
+
+    }
+}
+
+namespace Test
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Employee newEmployee = new Employee();
+            newEmployee.FirstName = "John";
+            newEmployee.LastName = "Smith";
+            newEmployee.HireDate = Convert.ToDateTime("01/01/2010");
+
+            Employee nextEmployee = new Employee();
+            nextEmployee.FirstName = "Bill";
+            nextEmployee.LastName = "Jones";
+            nextEmployee.HireDate = Convert.ToDateTime("01/11/2013");
+
+
+            List<Employee> employees = new List<Employee>();
+            employees.Add(newEmployee);
+            employees.Add(nextEmployee);
+
+            for (int i=0;i<employees.Count;i++)
+            {
+                Console.WriteLine(employees[i].FirstName + " " + employees[i].LastName + " " + employees[i].HireDate);
+            }
+            Console.ReadKey();
+        }
+    }
+}
